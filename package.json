@@ -1,0 +1,26 @@
+{
+  "name": "typescript-publisher",
+  "version": "0.0.1",
+  "description": "A set of tools to build publication server of rx-txjs components",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tsemach/typescript-publisher.git"
+  },
+  "keywords": [
+    "rx-txjs",
+    "rxjs",
+    "publisher",
+    "typescript",
+    "nodeJS"
+  ],
+  "author": "Tsemach Mizrachi <tsemach.mizrachi@gmail.com> (http://tsemach.github.io)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tsemach/typescript-publisher/issues"
+  },
+  "homepage": "https://github.com/tsemach/typescript-publisher#readme"
+}

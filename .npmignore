@@ -1,0 +1,17 @@
+node_modules/
+examples/
+*.log
+*.tgz
+.idea
+src/
+tests/
+tsconfig.json
+tslint.json
+typings.json
+typings
+create-list.sh
+project.list
+dist/tests/
+.nyc_output/
+coverage/
+typescript.run
