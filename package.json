@@ -22,5 +22,26 @@
   "bugs": {
     "url": "https://github.com/tsemach/typescript-publisher/issues"
   },
-  "homepage": "https://github.com/tsemach/typescript-publisher#readme"
+  "homepage": "https://github.com/tsemach/typescript-publisher#readme",
+  "dependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/express": "^4.17.0",
+    "axios": "^0.19.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "lodash": "^4.17.15",
+    "logging": "^3.2.0",
+    "redux": "^4.0.4",
+    "rx-txjs": "file:../typescript-txjs/rx-txjs-0.2.21.tgz",
+    "url-parser": "0.0.1",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.0",
+    "@types/mocha": "^5.2.7",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.0",
+    "ts-node": "^8.3.0"
+  }
 }

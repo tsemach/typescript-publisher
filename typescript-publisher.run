@@ -1,0 +1,6 @@
+curl -X POST http://localhost:3001/v1/publish --header 'Content-Type: application/json' -d '{"data": "publish"}'
+
+curl -X POST http://localhost:3001/v1/publish --header 'Content-Type: application/json' -d '{"name": "SERVICE-B::R1", "config": {"host":"localhost","port":3002,"method":"get","service":"sanity","route":"save","mode":"server"} }'
+
+mocha --require ts-node/register tests/route/tx-route-rest-publisher.spec.ts
+
