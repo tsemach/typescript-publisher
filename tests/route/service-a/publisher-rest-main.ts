@@ -1,7 +1,10 @@
+import createLogger from 'logging';
+const logger = createLogger('Publication-REST-Service-A');
 
 import { PublisherREST,  } from '../../../src/route/publisher-rest';
 import { PublisherRESTEndPoint } from '../../../src/common/publisher-rest-endpoint';
 import PublisherRESTApplication from '../publisher-rest-application';
+import PublisherRESTData from '../publisher-rest-data';
 import { R1Component } from './R1Component';
 import { R2Component } from './R2Component';
 import { R3Component } from './R3Component';
@@ -33,26 +36,26 @@ function run() {
     new R1Component();
     new R2Component();
     new R3Component();
+
+    if (process.send) {
+      process.send({status: 'service-a:up', data: {}});
+    }
   });
 }
 
-process.on('message', (msg) => {  
-  console.log('[service-a:init] message from parent:', msg);
+process.on('message', (msg: PublisherRESTData) => {  
+  logger.info('[service-a] message from parent:', msg);
 
-  if (msg === 'service-a:run') {
-    run();
+  if (msg.status === 'service-a:get') {
+    console.log('AAAAAAAAAAAAAAA: ', {status: 'service-a:get', data: PublisherREST.instance.getState()});
+    process.send({status: 'service-a:get', data: PublisherREST.instance.getState()});
   }
-  if (msg === 'service-a:exit') {
-    console.log('[service-a:exit] service-a going to exist')
+
+  if (msg.status === 'service-a:exit') {
+    logger.info('[service-a:exit] service-a going to exist')
 
     process.exit(0);
   }
 });
-console.log('[service-a:init] init completed');
 
-if (process.send) {
-  process.send('service-a:up')
-}
-else {
-  run();
-}
+run();

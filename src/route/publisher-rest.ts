@@ -32,52 +32,16 @@ export class PublisherREST implements TxPublisher {
     TxRoutePointRegistry.instance.setApplication(app)
     TxRoutePointRegistry.instance.setPublisher(this);
 
-    logger.info('[PublisherREST::setApplication] set application of:', config.name);
-    // let router = express.Router();
-
-    // //------------------------------------------------------------------------------------------------------------
-    // /**
-    //  * this route return all my routepoints, when other service is up it initiate a get request 
-    //  * to get all my routepoints
-    //  */
-    // router.get('/', (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    //   const { host, port, route } = req.query;
-    //   logger.info("[PublisherREST::POST] got post request - req.query=", JSON.stringify(req.query, undefined, 2));
-      
-    //   const routepoints = [];
-    //   for(let [key, val] of this.routepoints.entries()) {
-    //     routepoints.push({name: key, config: val});
-    //   }
-    //   logger.info("[PublisherREST::POST] going to reply routepoints.length=", routepoints.length);
-      
-    //   res.json({success: true, data: routepoints});
-    // });
-    // //------------------------------------------------------------------------------------------------------------
-    // /**
-    //  * this route is to add to me other service routepoint. 
-    //  * the body include {name, config} of the routepoint. 
-    //  */
-    // router.post('/', (req: express.Request, res: express.Response, next: express.NextFunction) => {      
-    //   logger.info("[PublisherREST::POST] got post request - req.body=", JSON.stringify(req.body, undefined, 2));
-    //   const { name, config } = req.body;
-
-    //   config.mode = 'client';
-    //   TxRoutePointRegistry.instance.create(name, config);
-
-    //   res.json({success: true});
-    // });
-    // //------------------------------------------------------------------------------------------------------------
-
-    logger.info("[PublisherREST:setApplication] config.route = ", config.route);    
+    logger.info(`[PublisherREST::setApplication] set application of ${config.name} with route ${config.route}`);        
     app.use(config.route, (new PublisherRESTService())(this.routepoints));
 
     Summary.dispatch(Summary.consts.START, config.name);
     this.endpoints.forEach(ep => Summary.dispatch(Summary.consts.ADD_ENDPOINT, ep));
 
     this.notifyAll();
-  }
-    
-  notifyAll() {
+  }   
+
+  async notifyAll() {
     const allPromises = [];
     this.endpoints.forEach(async (endpoint) => {
 
@@ -92,70 +56,44 @@ export class PublisherREST implements TxPublisher {
       }
 
       const promise = new Promise(async (resolve, reject) => {
-        try {
-          const reply = await await utils.callAxios(url, options, null);
-          const { success, data} = reply;
-          
-          if ( ! success ) {
-            logger.error(`ERROR - [PublisherREST:notifyAll] get fail status on url: ${url}`);  
+        const reply = await this.notifyEndPoint(url, options);
 
-            return;
-          }
-
-          data.forEach((component: {name: string, config: TxRouteServiceConfig }) => {
-            const { name, config} = component;
-
-            config.mode = 'client';
-            TxRoutePointRegistry.instance.create(name, config);            
-            Summary.dispatch(Summary.consts.ADD_COMPONENT, name);
-
-            logger.info("[PublisherREST:notifyAll] adding routepoint name:", name);
-          });
-          resolve(reply.data);
-        }
-        catch (e) {
-          logger.error(`ERROR - [PublisherREST:notifyAll] get error on url: ${url}\n${e.stack}`);
-        }
+        resolve(reply);        
       })
 
       allPromises.push(promise);
     });
+    await Promise.all(allPromises);
   }
 
-  notifyAllOLD() {
-    const allPromises = [];
-    this.endpoints.forEach(async (endpoint) => {
+  async notifyEndPoint(url: string, options: CallAxiosConfig) {
+    try {
+      const reply = await utils.callAxios(url, options, null);
+      const { success, data} = reply;
+      
+      if ( ! success ) {
+        logger.error(`ERROR - [PublisherREST:notifyEndPoint] get fail status on url: ${url}`);  
 
-      const url = `http://${endpoint.host}:${endpoint.port}${endpoint.route}`
-      const promise = new Promise(async (resolve, reject) => {
-        try {
-          const options = {
-            timeout: 2000
-          }
-          const reply = await axios.get(url, options);
-          const { success, data} = reply.data;
+        return {success: false, data: null};
+      }
 
-          data.forEach((e: {name: string, config: TxRouteServiceConfig }) => {
-            const { name, config} = e;
-            
-            config.mode = 'client';
-            TxRoutePointRegistry.instance.create(name, config);
+      data.forEach((component: {name: string, config: TxRouteServiceConfig }) => {
+        const { name, config} = component;
 
-            Summary.dispatch(Summary.consts.ADD_PUBLISH, name);
-            logger.info("[PublisherREST:notifyAll] adding routepoint name:", name);
-          });
-          resolve(reply.data);
-        }
-        catch (e) {
-          logger.error(`ERROR - [PublisherREST:notifyAll] get error on url: ${url}\n${e.stack}`);
-        }
-      })
+        config.mode = 'client';
+        TxRoutePointRegistry.instance.create(name, config);            
+        Summary.dispatch(Summary.consts.ADD_COMPONENT, name);
 
-      allPromises.push(promise);
-    });
+        logger.info("[PublisherREST:notifyEndPoint] adding routepoint name:", name);
+      });
+      return {sucess: true, data};
+    }
+    catch (e) {
+      logger.error(`ERROR - [PublisherREST:notifyAll] get error on url: ${url}\n${e.stack}`);
+    }
 
-  }
-
+    return {success: false, data: null};
+  }  
 
   async publish(name: string, config: TxRouteServiceConfig) {
     logger.info(`[PublisherREST::publish] add routepoint: ${name} to publish list`);
@@ -261,5 +199,8 @@ export class PublisherREST implements TxPublisher {
     this.endpoints.push(endpoint);
   }
 
+  getState() {
+    Summary.getState();
+  }
 }
 
