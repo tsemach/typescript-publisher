@@ -27,10 +27,9 @@ function run() {
   }
 
   PublisherREST.instance.addEndPoint({name: 'service-b', host: 'localhost', port: 3002, route: '/v1/publish'});
-  // TxPublisherREST.instance.addEndPoint({name: 'service-a', host: 'localhost', port: 3003, route: '/v1/publish'});
+  PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});  
 
   const server = PublisherRESTApplication.instance.listen('localhost', +PORT);
-
   server.on('listening', () => {
     PublisherREST.instance.setApplication(PublisherRESTApplication.instance.app, config);
 
@@ -48,7 +47,6 @@ process.on('message', (msg: PublisherRESTData) => {
   logger.info('[service-a] message from parent:', msg);
 
   if (msg.status === 'service-a:get') {
-    console.log('AAAAAAAAAAAAAAA: ', {status: 'service-a:get', data: PublisherREST.instance.getState()});
     process.send({status: 'service-a:get', data: PublisherREST.instance.getState()});
   }
 

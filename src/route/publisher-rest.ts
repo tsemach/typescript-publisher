@@ -21,6 +21,7 @@ export class PublisherREST implements TxPublisher {
 
   private routepoints = new Map<string, TxRouteServiceConfig>();
   private endpoints = new Array<PublisherRESTEndPoint>();  
+  private config: PublisherRESTEndPoint;
 
   constructor() {
   }
@@ -30,11 +31,13 @@ export class PublisherREST implements TxPublisher {
   }
 
   setApplication(app: express.Application, config: PublisherRESTEndPoint) {
+    this.config = config;    
+
     TxRoutePointRegistry.instance.setApplication(app)
     TxRoutePointRegistry.instance.setPublisher(this);
-
-    logger.info(`[PublisherREST::setApplication] set application of ${config.name} with route ${config.route}`);        
-    app.use(config.route, (new PublisherRESTService())(this.routepoints));
+    
+    logger.info(`${this.prefix('setApplication')} set application of ${config.name} with route ${config.route}`);
+    app.use(config.route, (new PublisherRESTService())(this.routepoints, config));
 
     Summary.dispatch(Summary.consts.START, config.name);
     this.endpoints.forEach(ep => Summary.dispatch(Summary.consts.ADD_ENDPOINT, ep));
@@ -52,14 +55,14 @@ export class PublisherREST implements TxPublisher {
         timeout: 2000,
         loops: 3,
         interval: 2000,
-        from: 'notifyAll',
+        from: `[${this.getName()}] [notifyAll]`,
         data: null
       }
 
       const promise = new Promise(async (resolve, reject) => {
         const reply = await this.notifyEndPoint(url, options);
 
-        resolve(reply);        
+        resolve(reply);
       })
 
       allPromises.push(promise);
@@ -73,7 +76,7 @@ export class PublisherREST implements TxPublisher {
       const { success, data} = reply;
       
       if ( ! success ) {
-        logger.error(`ERROR - [PublisherREST:notifyEndPoint] get fail status on url: ${url}`);  
+        logger.error(`${this.prefix('notifyEndPoint')} ERROR - get fail status on url: ${url}`);
 
         return {success: false, data: null};
       }
@@ -85,36 +88,33 @@ export class PublisherREST implements TxPublisher {
         TxRoutePointRegistry.instance.create(name, config);            
         Summary.dispatch(Summary.consts.ADD_COMPONENT, name);
 
-        logger.info("[PublisherREST:notifyEndPoint] adding routepoint name:", name);
+        logger.info(`${this.prefix('notifyEndPoint')} adding routepoint name: ${name}`);
       });
       return {sucess: true, data};
     }
     catch (e) {
-      logger.error(`ERROR - [PublisherREST:notifyAll] get error on url: ${url}\n${e.stack}`);
+      logger.error(`${this.prefix('notifyEndPoint')} ERROR - get error on url: ${url}\n${e.stack}`);
     }
 
     return {success: false, data: null};
   }  
 
   async publish(name: string, config: TxRouteServiceConfig) {
-    logger.info(`[PublisherREST::publish] add routepoint: ${name} to publish list`);
+    logger.info(`${this.prefix('publish')} add routepoint: ${name} to publish list`);
 
     this.routepoints.set(name, config);
     const allPromises = [];
 
     this.endpoints.forEach(async (endpoint) => {
-      const task = {routepoint: { name, config}, endpoint: endpoint, isPublish: false}
-      logger.info("[PublisherREST:publish] in forEach:", endpoint.name);
-      
-      //allPromises.push(util.promisify(setImmediate)(this.toPublish(task)));      
-      allPromises.push(util.promisify(this.doPublish)(task,  (err, data) => data));
+      const task = {routepoint: { name, config}, endpoint: endpoint, isPublish: false}      
+      allPromises.push(util.promisify(this.doPublish.bind(this))(task, (err: any, data: any) => data));
     });
 
     try {
       await Promise.all(allPromises)
     }
     catch(e) {
-      logger.error(`[PublisherREST:publish] ERROR on promise.all, e=\n${e.stack}`);
+      logger.error(`${this.prefix('publish')} ERROR on promise.all, e=\n${e.stack}`);
     }
   }
 
@@ -134,42 +134,23 @@ export class PublisherREST implements TxPublisher {
     const data = await utils.callAxios(url, options, null); 
     
     if (data && data.success === true) {
-      Summary.dispatch(Summary.consts.ADD_PUBLISH, routepoint.name);
-      logger.info(`[PublisherREST:doPublish] [${endpoint.name}] reply.data: ${JSON.stringify(data)} of url: ${url}`);    
+      Summary.dispatch(Summary.consts.ADD_PUBLISH, {component: routepoint.name, service: endpoint.name});
+      logger.info(`${this.prefix('discovery')} [${endpoint.name}] reply.data: ${JSON.stringify(data)} of url: ${url}`);
       // callback(null, data); 
 
       return data;
     }
 
-    logger.info(`[PublisherREST:doPublish] [${endpoint.name}] reply.data: ${JSON.stringify(data)} of url: ${url}`);    
+    logger.info(`${this.prefix('discovery')} [${endpoint.name}] reply.data: ${JSON.stringify(data)} of url: ${url}`);    
     callback(null, {success: false, data: null}); 
   }
-
-  private doPublishOK_WITH_PROMISE(task: PublisherRESTTask) {
-    return new Promise(async (resolve, rejact) => {      
-      const { routepoint, endpoint } = task;     
-          
-      const url = `http://${endpoint.host}:${endpoint.port}${endpoint.route}`;
-      const options: CallAxiosConfig = {
-        method: 'post',
-        timeout: 2000,
-        loops: 3,
-        interval: 2000,
-        from: 'publish',
-        data: routepoint
-      }      
-
-      const data = await utils.callAxios(url, options, null);
-      logger.info(`[PublisherREST:doPublish] [${endpoint.name}] reply.data: ${JSON.stringify(data)} of url: ${url}`);
-    });    
-  }
-
+  
   async discover(name: string | Symbol): Promise<TxRoutpointIndicator> {
-    logger.info(`[PublisherREST::discover] going to discover routepoint '${name}'`);
+    logger.info(`${this.prefix('discovery')} going to discover routepoint '${name}'`);
         
     const allPromises = [];
     for (let i = 0; i < this.endpoints.length; i++) {      
-      allPromises.push(this.doSiscover(name, this.endpoints[i]));
+      allPromises.push(this.doDiscover.bind(this)(name, this.endpoints[i]));
       //const indicator = await this.doSiscover(name, this.endpoints[i]);    
     }
     const indicators: TxRoutpointIndicator[] = await Promise.all(allPromises);
@@ -178,15 +159,11 @@ export class PublisherREST implements TxPublisher {
         return indicators[i]
       }
     }
-    return {name, config: null};
-
-    // return new Promise<TxRoutpointIndicator>(resolve => {
-    //   resolve({name, config: null});
-    // });
+    return {name, config: null};    
   }
 
-  async doSiscover(name: string | Symbol, endpoint: PublisherRESTEndPoint): Promise<TxRoutpointIndicator> {    
-    logger.info(`[PublisherREST::doDiscover] going to discover routepoint '${name}'`);
+  async doDiscover(name: string | Symbol, endpoint: PublisherRESTEndPoint): Promise<TxRoutpointIndicator> {    
+    logger.info(`${this.prefix('doDiscovery')} going to discover routepoint '${name}'`);
     
     const { host, port, route } = endpoint;     
         
@@ -201,7 +178,7 @@ export class PublisherREST implements TxPublisher {
 
     const data = await utils.callAxios(url, options, null);         
     if (data && data.success === true) {
-      logger.info(`[PublisherREST:discover] [${endpoint.name}] find routepoint of name: ${name}`); 
+      logger.info(`${this.prefix('discovery')} [${endpoint.name}] find routepoint of name: ${name}`);
             
       return {name, config: data} as TxRoutpointIndicator;
     }
@@ -214,7 +191,15 @@ export class PublisherREST implements TxPublisher {
   }
 
   getState() {
-    Summary.getState();
+    return Summary.getState();
+  }
+
+  getName() {
+    return this.config.name;
+  }
+
+  prefix(from: string) {
+    return `[PublisherREST::${from}] [${this.getName()}]`
   }
 }
 

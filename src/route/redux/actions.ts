@@ -23,7 +23,7 @@ export function addComponentAction(component: string) {
   return {type: Consts.ADD_COMPONENT, component};
 };
 
-export function addPublishAction(component: string) {
-  return {type: Consts.ADD_PUBLISH, component};
+export function addPublishAction(payload: {component: string, service: string}) {
+  return {type: Consts.ADD_PUBLISH, payload};
 };
 

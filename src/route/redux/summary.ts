@@ -22,7 +22,7 @@ class Summary {
     this.actions.set(Consts.ADD_PUBLISH, addPublishAction);
   }
 
-  getState() {
+  getState() {  
     return this.store.getState();
   }
 

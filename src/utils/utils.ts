@@ -33,13 +33,13 @@ async function callAxios(url: string, config: CallAxiosConfig, callback: NodeCom
     loops++;
     try {
       const reply = await axios(options);
-      logger.info(`[util:callAxios] [${config.from}] reply.data: ${JSON.stringify(reply.data)} of url: ${url}`);      
+      logger.info(`[util:callAxios] ${config.from} reply.data: ${JSON.stringify(reply.data)} of url: ${url}`);      
       if (callback) callback(null, reply.data);
       return reply.data;
     }
     catch (e) {
       error = e;
-      logger.info(`[util:callAxios] ERROR: [${config.from}] e:\n${e.stack}`);
+      logger.info(`[util:callAxios] ERROR: ${config.from} e:\n${e.stack}`);
       
       await sleep(config.interval);
     }    

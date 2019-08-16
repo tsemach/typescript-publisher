@@ -4,10 +4,12 @@ const logger = createLogger('RoutePublisherApplication');
 import * as expres from 'express';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
+import * as http from 'http';
 
 class PublisherRESTApplication {  
   private static _instance: PublisherRESTApplication = null;
   public _app: expres.Application;
+  private server: http.Server;
   
   private constructor() { 
     this._app = expres();
@@ -34,7 +36,12 @@ class PublisherRESTApplication {
       logger.info(`[RoutePublisherApplication::listen] Listening at http://${host}:${port}/`);
     })
   {    
-    return this._app.listen(port, callback);
+    this.server = this._app.listen(port, callback);
+    return this.server;
+  }
+
+  close() {
+    this.server.close();
   }
 }
 

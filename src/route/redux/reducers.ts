@@ -40,7 +40,8 @@ function addComponentReducer(_state: State, _action: ActionType) {
 
 function addPublishReducer(_state: State, _action: ActionType) {
   const state = {..._state};
-  state.publishs.push(_action.component);
+
+  state.publishs.push(`${_action.payload.component} --> ${_action.payload.service}`);
   state.summary.publishs++;
 
   return state;
