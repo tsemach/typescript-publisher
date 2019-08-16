@@ -40,6 +40,7 @@ async function callAxios(url: string, config: CallAxiosConfig, callback: NodeCom
     catch (e) {
       error = e;
       logger.info(`[util:callAxios] ERROR: [${config.from}] e:\n${e.stack}`);
+      
       await sleep(config.interval);
     }    
   }

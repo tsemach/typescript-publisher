@@ -4,5 +4,5 @@ export interface CallAxiosConfig {
   loops: number;
   interval: number;
   from: string;
-  data: any;
+  data?: any;
 }

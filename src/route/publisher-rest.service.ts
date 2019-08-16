@@ -5,7 +5,7 @@ const logger = createLogger('Route-Publication-REST-Service');
 
 import * as express from 'express';
 
-import { TxRouteServiceConfig, TxRoutePointRegistry } from 'rx-txjs';
+import { TxRouteServiceConfig, TxRoutePointRegistry, TxRoutePoint } from 'rx-txjs';
 import { Callable } from '../utils/';
 import Summary from './redux/summary';
 
@@ -47,11 +47,29 @@ export class PublisherRESTService extends Callable {
     });
     //------------------------------------------------------------------------------------------------------------
     /**
+     * This route is to check if a routepoint of name is exist in my routepoint registry.
+     * If so return it's config
+     */
+    router.get('/discovery', async (req: express.Request, res: express.Response, next: express.NextFunction) => {      
+      logger.info(`[PublisherRESTService::GET/discovery] going to discover if routepoint of '${req.query.name} exist on my registry`);      
+      
+      if (TxRoutePointRegistry.instance.has(req.query.name)) {
+        logger.info(`[PublisherRESTService::GET/discovery] found routename of name: '${req.query.name}`);
+        const rp = <TxRoutePoint>(await TxRoutePointRegistry.instance.get(req.query.name));
+
+        res.json({success: true, config: rp.getConfig()});
+
+        return;
+      }
+      res.json({success: false});
+    });
+    //------------------------------------------------------------------------------------------------------------
+    /**
      * this route is to add to me other service routepoint. 
      * the body include {name, config} of the routepoint. 
      */
     router.get('/summary', (req: express.Request, res: express.Response, next: express.NextFunction) => {      
-      logger.info("[PublisherRESTService::get/summary] got post summaryrequest");      
+      logger.info("[PublisherRESTService::get/summary] got post summary request");      
       
       const reply = JSON.stringify({success: true, data: Summary.getState()}, undefined, 2);
       res.send(reply);

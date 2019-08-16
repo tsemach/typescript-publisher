@@ -14,8 +14,9 @@ import Summary from './redux/summary';
 import { CallAxiosConfig } from '../common/call-exios-config';
 import { NodeCommonCallback } from './../common/callbacks';
 import { PublisherRESTService } from './publisher-rest.service';
+import { TxRoutpointIndicator } from 'rx-txjs/dist/src/tx-routepint-indicator';
 
-export class PublisherREST implements TxPublisher {    
+export class PublisherREST implements TxPublisher {
   public static _instance: PublisherREST = null;
 
   private routepoints = new Map<string, TxRouteServiceConfig>();
@@ -163,37 +164,50 @@ export class PublisherREST implements TxPublisher {
     });    
   }
 
-  private doPublishOLD(task: PublisherRESTTask) {
-    return new Promise(async (resolve, rejact) => {      
-      const { routepoint, endpoint } = task;
-      const { name, config } = routepoint
-          
-      const url = `http://${endpoint.host}:${endpoint.port}${endpoint.route}`
-      const options = {
-        timeout: 2000
+  async discover(name: string | Symbol): Promise<TxRoutpointIndicator> {
+    logger.info(`[PublisherREST::discover] going to discover routepoint '${name}'`);
+        
+    const allPromises = [];
+    for (let i = 0; i < this.endpoints.length; i++) {      
+      allPromises.push(this.doSiscover(name, this.endpoints[i]));
+      //const indicator = await this.doSiscover(name, this.endpoints[i]);    
+    }
+    const indicators: TxRoutpointIndicator[] = await Promise.all(allPromises);
+    for (let i = 0; i < indicators.length; i++) {
+      if (indicators[i].config) {
+        return indicators[i]
       }
+    }
+    return {name, config: null};
 
-      logger.info("[PublisherREST:doPublish] on service:", endpoint.name);
-      let isTring = true;
-      let loops = 0;
-      while (isTring && loops < 30000) {
-        loops++;
-        try {
-          const reply = await axios.post(url, {name, config}, options);
-          logger.info(`[PublisherREST:doPublish] reply.data: ${JSON.stringify(reply.data)} of url: ${url}`);
-          isTring = false;
-        }
-        catch (e) {
-          // logger.error(`[PublisherREST:doPublish] ERROR: while trying to publish: ${task.endpoint.name}\n${e.stack}`);
-          logger.error(`[PublisherREST:doPublish] ERROR: while trying to publish to: ${task.endpoint.name} for routepoint: ${routepoint.name}`);
-          await utils.sleep(2000);
-        }
-      }
-
-    });
-
-    // return await task.endpoint.name;
+    // return new Promise<TxRoutpointIndicator>(resolve => {
+    //   resolve({name, config: null});
+    // });
   }
+
+  async doSiscover(name: string | Symbol, endpoint: PublisherRESTEndPoint): Promise<TxRoutpointIndicator> {    
+    logger.info(`[PublisherREST::doDiscover] going to discover routepoint '${name}'`);
+    
+    const { host, port, route } = endpoint;     
+        
+    const url = `http://${host}:${port}${route}/discover?name=${name}`;
+    const options: CallAxiosConfig = {
+      method: 'get',
+      timeout: 2000,
+      loops: 3,
+      interval: 2000,
+      from: '/v1/publish',      
+    }      
+
+    const data = await utils.callAxios(url, options, null);         
+    if (data && data.success === true) {
+      logger.info(`[PublisherREST:discover] [${endpoint.name}] find routepoint of name: ${name}`); 
+            
+      return {name, config: data} as TxRoutpointIndicator;
+    }
+
+    return {name, config: null} as TxRoutpointIndicator     
+  }    
 
   addEndPoint(endpoint: PublisherRESTEndPoint) {
     this.endpoints.push(endpoint);
