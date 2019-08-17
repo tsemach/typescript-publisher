@@ -24,7 +24,7 @@ class Summary {
     this.actions.set(Consts.ADD_DISCOVER, addDiscoverAction);    
   }
 
-  getState() {  
+  getState() {
     return this.store.getState();
   }
 
