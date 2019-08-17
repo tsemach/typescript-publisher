@@ -51,7 +51,7 @@ function run() {
 
       const reply = await rp.tasks().next(new TxRouteServiceTask<any>({source: 'publisher-rest-main-d'}, {from: 'clientRoutePoint'}));
 
-      logger.info(`[publisher-rest-main-d] routepoint ${rp.name}.tasks().next(..) is: ${reply.data}`);
+      logger.info(`[publisher-rest-main-d] routepoint ${rp.name}.tasks().next(..) is: ${JSON.stringify(reply.data)}`);
     }, 2000);
     
   });

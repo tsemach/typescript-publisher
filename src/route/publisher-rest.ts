@@ -5,9 +5,8 @@ const logger = createLogger('Route-Publication-REST');
 
 import * as express from 'express';
 import * as util from 'util';
-import axios from 'axios';
 
-import { TxRouteServiceConfig, TxPublisher, TxRoutePointRegistry, TxJobRegistry } from 'rx-txjs';
+import { TxRouteServiceConfig, TxPublisher, TxRoutePointRegistry } from 'rx-txjs';
 import { PublisherRESTEndPoint, PublisherRESTTask } from '../common/publisher-rest-endpoint';
 import { utils } from '../utils';
 import Summary from './redux/summary';
@@ -62,7 +61,12 @@ export class PublisherREST implements TxPublisher {
       const promise = new Promise(async (resolve, reject) => {
         const reply = await this.notifyEndPoint(url, options);
 
-        resolve(reply);
+        if (reply.success !== true) {
+          reject(reply);
+
+          return;
+        }
+        resolve(reply);        
       })
 
       allPromises.push(promise);
@@ -187,7 +191,7 @@ export class PublisherREST implements TxPublisher {
     return {name, config: null} as TxRoutpointIndicator     
   }    
 
-  addEndPoint(endpoint: PublisherRESTEndPoint) {
+  addEndPoint(endpoint: PublisherRESTEndPoint, isNotifyAll = false) {
     this.endpoints.push(endpoint);
   }
 
