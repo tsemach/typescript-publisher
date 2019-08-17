@@ -44,14 +44,14 @@ function run() {
     }
 
     setTimeout(async () => {
-      console.log('DISCOVERY: going to check discovery');
+      logger.info('[publisher-rest-main-d]: discovery going to check discovery');
       TxRoutePointRegistry.instance.del('SERVICE-A::R2');
       const rp = await TxRoutePointRegistry.instance.get('SERVICE-A::R2');
-      console.log('DISCOVERY: rp.name=', rp.name);
+      logger.info('[publisher-rest-main-d] discovery find routepoint name rp.name=', rp.name);
 
       const reply = await rp.tasks().next(new TxRouteServiceTask<any>({source: 'publisher-rest-main-d'}, {from: 'clientRoutePoint'}));
 
-      console.log('[publisher-rest-main-d] reply: ', reply.data);
+      logger.info(`[publisher-rest-main-d] routepoint ${rp.name}.tasks().next(..) is: ${reply.data}`);
     }, 2000);
     
   });

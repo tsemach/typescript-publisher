@@ -153,10 +153,11 @@ export class PublisherREST implements TxPublisher {
       allPromises.push(this.doDiscover(name, this.endpoints[i]));
     }
     const indicators: TxRoutpointIndicator[] = await Promise.all(allPromises);
+    
     for (let i = 0; i < indicators.length; i++) {
       if (indicators[i].config) {
         Summary.dispatch(Summary.consts.ADD_DISCOVER, {component: indicators[i].name, service: this.endpoints[i].name});
-        return indicators[i]
+        return indicators[i];
       }
     }
     return {name, config: null};

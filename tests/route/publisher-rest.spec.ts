@@ -7,9 +7,13 @@ const { fork } = require('child_process');
 import 'mocha';
 import { expect } from 'chai';
 import { assert } from 'chai';
-import { verify } from 'crypto';
+
 import { TxMountPointRegistry } from 'rx-txjs';
 import PublisherRESTData from './publisher-rest-data';
+import { PublisherRESTMainExpected as PublisherRESTServiceAExpected } from './service-d/publisher-rest-main-expected';
+import { PublisherRESTMainExpected as PublisherRESTServiceBExpected } from './service-b/publisher-rest-main-expected';
+import { PublisherRESTMainExpected as PublisherRESTServiceCExpected } from './service-c/publisher-rest-main-expected';
+import { PublisherRESTMainExpected as PublisherRESTServiceDExpected } from './service-d/publisher-rest-main-expected';
 
 describe('RouteREST Publication Test', () => {
 
@@ -107,6 +111,8 @@ describe('RouteREST Publication Test', () => {
       services.b.fork.send({status: 'service-b:exit', data: {}});
       services.c.fork.send({status: 'service-c:exit', data: {}});
 
+      // assert.deepEqual(services.a.data, PublisherRESTServiceAExpected);
+
       done();
     }
     
@@ -121,7 +127,6 @@ describe('RouteREST Publication Test', () => {
       c: {fork, ready: false, data: null},
       d: {fork, ready: false, data: null}
     };
-    // let services = {a: {fork, ready: false, data: null}, d: {fork, ready: false, data: null}};
     
     services.a.fork = fork('./dist/tests/route/service-a/publisher-rest-main.js');
     services.b.fork = fork('./dist/tests/route/service-b/publisher-rest-main.js');    
@@ -250,9 +255,11 @@ describe('RouteREST Publication Test', () => {
       services.c.fork.send({status: 'service-c:exit', data: {}});
       services.d.fork.send({status: 'service-d:exit', data: {}});
 
+      // assert.deepEqual(services.d.data, PublisherRESTServiceDExpected);
+
       done();
     }
-  }).timeout(20000);
+  }).timeout(15000);
 
 });
   
