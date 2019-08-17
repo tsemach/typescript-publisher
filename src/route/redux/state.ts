@@ -5,9 +5,11 @@ export default interface State {
   summary: {
     components: number;
     publishs: number;
+    discovers: number;
   }
   components: string[];
   publishs: string[];
+  discovers: string[];
   endpoints: PublisherRESTEndPoint[]
 
 } 

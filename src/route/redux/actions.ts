@@ -27,3 +27,7 @@ export function addPublishAction(payload: {component: string, service: string}) 
   return {type: Consts.ADD_PUBLISH, payload};
 };
 
+export function addDiscoverAction(payload: {component: string, service: string}) {
+  return {type: Consts.ADD_DISCOVER, payload};
+};
+

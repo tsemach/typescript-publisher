@@ -15,6 +15,7 @@ function startReducer(state: State, _action: ActionType) {
     },
     components: [],
     publishs: [],
+    discovers: [],
     endpoints: []
   };
 
@@ -47,6 +48,15 @@ function addPublishReducer(_state: State, _action: ActionType) {
   return state;
 }
 
+function addDiscoverReducer(_state: State, _action: ActionType) {
+  const state = {..._state};
+
+  state.discovers.push(`${_action.payload.component} --> ${_action.payload.service}`);
+  state.summary.discovers++;
+
+  return state;
+}
+
 export default function reducer(state: State, action: ActionType) {
   if (action.type === Consts.START) {
     return startReducer(state, action);
@@ -62,6 +72,10 @@ export default function reducer(state: State, action: ActionType) {
      
   if (action.type === Consts.ADD_PUBLISH) {
     return addPublishReducer(state, action);
+  }
+
+  if (action.type === Consts.ADD_DISCOVER) {
+    return addDiscoverReducer(state, action);
   }
 
   return state;

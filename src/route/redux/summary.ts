@@ -9,6 +9,7 @@ import {
   addEndPointAction,
   addComponentAction,
   addPublishAction,
+  addDiscoverAction,
  } from './actions';
 
 class Summary {
@@ -20,6 +21,7 @@ class Summary {
     this.actions.set(Consts.ADD_ENDPOINT, addEndPointAction);
     this.actions.set(Consts.ADD_COMPONENT, addComponentAction);
     this.actions.set(Consts.ADD_PUBLISH, addPublishAction);
+    this.actions.set(Consts.ADD_DISCOVER, addDiscoverAction);    
   }
 
   getState() {  

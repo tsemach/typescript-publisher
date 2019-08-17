@@ -50,7 +50,7 @@ export class PublisherRESTService extends Callable {
      * This route is to check if a routepoint of name is exist in my routepoint registry.
      * If so return it's config
      */
-    router.get('/discovery', async (req: express.Request, res: express.Response, next: express.NextFunction) => {      
+    router.get('/discover', async (req: express.Request, res: express.Response, next: express.NextFunction) => {      
       logger.info(`[${_config.name}] [PublisherRESTService::GET:/discovery] going to discover if routepoint of '${req.query.name} exist on my registry`);      
       
       if (TxRoutePointRegistry.instance.has(req.query.name)) {
