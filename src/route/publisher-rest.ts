@@ -1,10 +1,11 @@
 
 import createLogger from 'logging';
-const logger = createLogger('Route-Publication-REST');
+const logger = createLogger('Publication-REST');
 //import { logger } from '../utils';
 
 import * as express from 'express';
 import * as util from 'util';
+import * as _ from 'lodash';
 
 import { TxRouteServiceConfig, TxPublisher, TxRoutePointRegistry } from 'rx-txjs';
 import { PublisherRESTEndPoint, PublisherRESTTask } from '../common/publisher-rest-endpoint';
@@ -29,7 +30,7 @@ export class PublisherREST implements TxPublisher {
     return this._instance || (this._instance = new this());
   }
 
-  setApplication(app: express.Application, config: PublisherRESTEndPoint) {
+  async setApplication(app: express.Application, config: PublisherRESTEndPoint) {
     this.config = config;    
 
     TxRoutePointRegistry.instance.setApplication(app)
@@ -41,7 +42,7 @@ export class PublisherREST implements TxPublisher {
     Summary.dispatch(Summary.consts.START, config.name);
     this.endpoints.forEach(ep => Summary.dispatch(Summary.consts.ADD_ENDPOINT, ep));
 
-    this.notifyAll();
+    await this.notifyAll();
   }   
 
   async notifyAll() {
@@ -94,7 +95,7 @@ export class PublisherREST implements TxPublisher {
 
         logger.info(`${this.prefix('notifyEndPoint')} adding routepoint name: ${name}`);
       });
-      return {sucess: true, data};
+      return {success: true, data};
     }
     catch (e) {
       logger.error(`${this.prefix('notifyEndPoint')} ERROR - get error on url: ${url}\n${e.stack}`);
@@ -110,8 +111,8 @@ export class PublisherREST implements TxPublisher {
     const allPromises = [];
 
     this.endpoints.forEach(async (endpoint) => {
-      const task = {routepoint: { name, config}, endpoint: endpoint, isPublish: false}      
-      allPromises.push(util.promisify(this.doPublish.bind(this))(task, (err: any, data: any) => data));
+      const task: PublisherRESTTask = {routepoints: [ { name, config} ], endpoint: endpoint, isPublish: false}      
+      allPromises.push(util.promisify(this.doPublish.bind(this))(task));
     });
 
     try {
@@ -120,10 +121,11 @@ export class PublisherREST implements TxPublisher {
     catch(e) {
       logger.error(`${this.prefix('publish')} ERROR on promise.all, e=\n${e.stack}`);
     }
+    logger.info(`${this.prefix('publish')} complete publishing routepoint: ${name}`);
   }
 
   private async doPublish(task: PublisherRESTTask, callback: NodeCommonCallback) {
-    const { routepoint, endpoint } = task;     
+    const { routepoints, endpoint } = task;     
         
     const url = `http://${endpoint.host}:${endpoint.port}${endpoint.route}`;
     const options: CallAxiosConfig = {
@@ -132,29 +134,28 @@ export class PublisherREST implements TxPublisher {
       loops: 3,
       interval: 2000,
       from: 'publish',
-      data: routepoint
+      data: routepoints
     }      
 
-    const data = await utils.callAxios(url, options, null); 
-    
+    const data = await utils.callAxios(url, options, null);     
     if (data && data.success === true) {
-      Summary.dispatch(Summary.consts.ADD_PUBLISH, {component: routepoint.name, service: endpoint.name});
-      logger.info(`${this.prefix('doPublish')} publish ${routepoint.name} to [${endpoint.name}] success === true reply.data: ${JSON.stringify(data)} use url: ${url}`);
-      // callback(null, data); 
+      routepoints.forEach(routepoint => Summary.dispatch(Summary.consts.ADD_PUBLISH, {component: routepoint.name, service: endpoint.name}));
+      logger.info(`${this.prefix('doPublish')} publish ${JSON.stringify(routepoints)} to [${endpoint.name}] success === true reply.data: ${JSON.stringify(data)} use url: ${url}`);
+      callback(null, data); 
 
-      return data;
+      return;
     }
 
-    logger.error(`${this.prefix('doPublish')} publish ${routepoint.name} to [${endpoint.name}] failed to publish, reply.data: ${JSON.stringify(data)} use url: ${url}`);
-    callback(null, {success: false, data: null}); 
+    logger.error(`${this.prefix('doPublish')} publish ${JSON.stringify(routepoints)} to [${endpoint.name}] failed to publish, reply.data: ${JSON.stringify(data)} use url: ${url}`);
+    callback({success: false, data: null}, null); 
   }
   
   async discover(name: string | Symbol): Promise<TxRoutpointIndicator> {
     logger.info(`${this.prefix('discovery')} going to discover routepoint '${name}'`);
         
     const allPromises = [];
-    for (let i = 0; i < this.endpoints.length; i++) {      
-      allPromises.push(this.doDiscover(name, this.endpoints[i]));
+    for (let i = 0; i < this.endpoints.length; i++) {            
+      allPromises.push(util.promisify(this.doDiscover.bind(this))(name, this.endpoints[i]));
     }
     const indicators: TxRoutpointIndicator[] = await Promise.all(allPromises);
     
@@ -167,10 +168,9 @@ export class PublisherREST implements TxPublisher {
     return {name, config: null};
   }
 
-  async doDiscover(name: string | Symbol, endpoint: PublisherRESTEndPoint): Promise<TxRoutpointIndicator> {    
+  private async doDiscover(name: string | Symbol, endpoint: PublisherRESTEndPoint, callback: NodeCommonCallback) {    
     logger.info(` [${endpoint.name}] ${this.prefix('doDiscover')} ${endpoint.name} need to discover routepoint '${name}'`);
-    
-    const { host, port, route } = endpoint;     
+    const { host, port, route } = endpoint;    
         
     const url = `http://${host}:${port}${route}/discover?name=${name}`;
     const options: CallAxiosConfig = {
@@ -184,27 +184,77 @@ export class PublisherREST implements TxPublisher {
     const data = await utils.callAxios(url, options, null);         
     if (data && data.success === true) {
       logger.info(`[${endpoint.name}] ${this.prefix('doDiscover')} find routepoint of name: ${name} on ${url} with config ${JSON.stringify(data.config)}`);
-            
-      return {name, config: data.config} as TxRoutpointIndicator;
-    }
+      callback(null, {name, config: data.config} as TxRoutpointIndicator);
 
-    return {name, config: null} as TxRoutpointIndicator     
+      return;
+    }    
+    callback({name, config: null} as TxRoutpointIndicator, null);
   }    
 
-  addEndPoint(endpoint: PublisherRESTEndPoint, isNotifyAll = false) {
+  async addEndPoint(endpoint: PublisherRESTEndPoint, isNotifyAll = false) {
+    if (_.find(this.endpoints, endpoint)) {
+      logger.warn(`${this.prefix('addEndPoint')} is already exist in this.endpoints`);
+      
+      return;
+    }    
     this.endpoints.push(endpoint);
+
+    if ( ! isNotifyAll ) {
+      return;
+    }
+
+    const url = `http://${endpoint.host}:${endpoint.port}${endpoint.route}`;
+    const options: CallAxiosConfig = {
+      method: 'get',
+      timeout: 2000,
+      loops: 3,
+      interval: 2000,
+      from: `[${this.getName()}] [addEndPoint]`,
+      data: null
+    }
+    
+    const reply = await this.notifyEndPoint(url, options);        
+    logger.info(`${this.prefix('addEndPoint')} got reply on notify endpoint success: ${reply.success}`);
+    
+    const task: PublisherRESTTask =  {routepoints: this.routePointsToArray(), endpoint, isPublish: false};
+    try {
+      logger.info(`${this.prefix('addEndPoint')} going to publish ${endpoint.name} with my routepoints, ${task.routepoints.length}`);
+      const reply = await util.promisify(this.doPublish.bind(this))(task);
+
+      return {success: reply.success};
+    }
+    catch (e) {
+      logger.error(`${this.prefix('addEndPoint')} failed publish ${endpoint.name} with my routepoints, ${task.routepoints.length}`);
+
+      return {success: false};
+    }
+  }
+
+  private routePointsToArray() {
+    let routespoints = new Array<TxRoutpointIndicator>();
+    for (let [name, config]  of this.routepoints[Symbol.iterator]()) {
+      routespoints.push({name, config});
+    }
+
+    return routespoints;
+  }
+
+  getEndPoint(name: string) {
+    return _.find(this.endpoints, {name});
   }
 
   getState() {
     return Summary.getState();
-  }
+  } 
 
   getName() {
-    return this.config.name;
+    return this.config ? this.config.name : '';
   }
 
   prefix(from: string) {
-    return `[${this.getName()}] [PublisherREST::${from}]`
+    const name = this.config ? `[${this.getName()}]` : '';
+
+    return `${name} [PublisherREST::${from}]`
   }
 }
 

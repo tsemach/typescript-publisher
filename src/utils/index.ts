@@ -5,5 +5,5 @@ import Callable from './callable';
 export {
   utils,
   logger,
-  Callable
+  Callable,
 }

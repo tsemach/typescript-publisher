@@ -8,29 +8,118 @@ import 'mocha';
 import { expect } from 'chai';
 import { assert } from 'chai';
 
-import { PublisherREST } from './../../src/route/publisher-rest';
-import { PublisherRESTEndPoint } from '../../src/common/publisher-rest-endpoint';
-
+import { TxMountPointRegistry } from 'rx-txjs';
 import PublisherRESTData from './publisher-rest-data';
+import { PublisherRESTMainExpected as PublisherRESTServiceAExpected } from './service-d/publisher-rest-main-expected';
+import { PublisherRESTMainExpected as PublisherRESTServiceBExpected } from './service-b/publisher-rest-main-expected';
+import { PublisherRESTMainExpected as PublisherRESTServiceCExpected } from './service-c/publisher-rest-main-expected';
+import { PublisherRESTMainExpected as PublisherRESTServiceDExpected } from './service-d/publisher-rest-main-expected';
 
-describe('RouteREST Publication Test', () => {
+describe('RouteREST Publication End-2-End Test', () => {
 
   /**
    */
-  it('publication-rest.space.ts: test add endpoint API', () => {
-    logger.info('publication-rest.space.ts: test add endpoint API');
+  it('publication-rest.space.ts: test route-rest publication', async (done) => {
+    logger.info('publication-rest.space.ts: test route-rest publication');
 
-    PublisherREST.instance.addEndPoint({name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
-    PublisherREST.instance.addEndPoint({name: 'service-a', host: 'someplace.com', port: 9999, route: '/v1/anywhere'});
-    PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});
+    let services = {a: {fork, ready: false, data: null}, b: {fork, ready: false, data: null}, c: {fork, ready: false, data: null}};
+    
+    services.a.fork = fork('./dist/tests/route/service-a/publisher-rest-main.js');
+    services.b.fork = fork('./dist/tests/route/service-b/publisher-rest-main.js');    
+    services.c.fork = fork('./dist/tests/route/service-c/publisher-rest-main.js');    
 
-    const endpoint = PublisherREST.instance.getEndPoint('service-a') as PublisherRESTEndPoint;
+    function run() {      
+      if (services.a.ready && services.b.ready && services.c.ready) {
+        logger.info('[publication-rest.spec.ts:run] service.a.ready = ', services.a.ready);
+        logger.info('[publication-rest.spec.ts:run] service.b.ready = ', services.b.ready);
+        logger.info('[publication-rest.spec.ts:run] service.c.ready = ', services.c.ready);
+        
+        setTimeout(() => {
+          services.a.fork.send({status: 'service-a:get', data: {}});
+          services.b.fork.send({status: 'service-b:get', data: {}});
+          services.c.fork.send({status: 'service-c:get', data: {}});
+        }, 2000);
+      }
+    }
+
+    function get() {
+      if (services.a.data && services.b.data && services.c.data) {
+        logger.info('[publication-rest.spec.ts:run] service.a.data = ', services.a.data);
+        logger.info('[publication-rest.spec.ts:run] service.b.data = ', services.b.data);
+        logger.info('[publication-rest.spec.ts:run] service.c.data = ', services.c.data);
+        
+        verify();
+      }
+    }
+
+    services.a.fork.on('message', (msg: PublisherRESTData) => {
+      logger.info('publication-rest.spec.ts: message from service-a:', msg);
   
-    assert.deepEqual<PublisherRESTEndPoint>(endpoint, {name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
-  });
+      if (msg.status === 'service-a:up') {
+        logger.info('publication-rest.spec.ts: service-a is up');      
+        services.a.ready = true;
+        run();        
+      }
 
-  it('publication-rest.space.ts: test add endpoint with notifyAll', (done) => {
-    logger.info('publication-rest.space.ts: test add endpoint with notifyAll');
+      if (msg.status === 'service-a:get') {
+        logger.info('publication-rest.spec.ts: getting data form service-a:', msg);
+
+        services.a.data = msg.data;           
+        get();
+      }   
+    });
+
+    services.b.fork.on('message', (msg: PublisherRESTData) => {
+      logger.info('publication-rest.spec.ts: message from service-b:', msg);
+  
+      if (msg.status === 'service-b:up') {
+        logger.info('publication-rest.spec.ts: service-b is up');
+        services.b.ready = true;
+        run();        
+      }
+
+      if (msg.status === 'service-b:get') {
+        logger.info('publication-rest.spec.ts: getting data form service-b:', msg);
+
+        services.b.data = msg.data;
+        get();
+      }   
+    });
+
+    services.c.fork.on('message', (msg: PublisherRESTData) => {
+      logger.info('publication-rest.spec.ts: message from service-c:', msg);
+  
+      if (msg.status === 'service-c:up') {
+        logger.info('publication-rest.spec.ts: service-c is up');
+        services.c.ready = true;
+        run();        
+      }
+
+      if (msg.status === 'service-c:get') {
+        logger.info('publication-rest.spec.ts: getting data form service-c:', msg);
+
+        services.c.data = msg.data;
+        get();
+      }   
+    });
+
+    const verify = () => {
+      console.log("NAMES A:", JSON.stringify(services.a.data, undefined, 2));
+      console.log("NAMES B:", JSON.stringify(services.b.data, undefined, 2));
+      console.log("NAMES C:", JSON.stringify(services.c.data, undefined, 2));
+      services.a.fork.send({status: 'service-a:exit', data: {}});
+      services.b.fork.send({status: 'service-b:exit', data: {}});
+      services.c.fork.send({status: 'service-c:exit', data: {}});
+
+      // assert.deepEqual(services.a.data, PublisherRESTServiceAExpected);
+
+      done();
+    }
+    
+  }).timeout(20000);
+
+  it('publication-rest.space.ts: test discovery', async (done) => {
+    logger.info('publication-rest.space.ts: test discovery');
 
     let services = {
       a: {fork, ready: false, data: null}, 
@@ -52,14 +141,10 @@ describe('RouteREST Publication Test', () => {
         logger.info('[publication-rest.spec.ts:run] service.b.ready = ', services.d.ready);
         
         setTimeout(() => {
-          PublisherREST.instance.addEndPoint({name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'}, true);
-          setTimeout(() => {
-            verify();
-          })
-          // services.a.fork.send({status: 'service-a:get', data: {}});
-          // services.b.fork.send({status: 'service-b:get', data: {}});
-          // services.c.fork.send({status: 'service-c:get', data: {}});
-          // services.d.fork.send({status: 'service-d:get', data: {}});
+          services.a.fork.send({status: 'service-a:get', data: {}});
+          services.b.fork.send({status: 'service-b:get', data: {}});
+          services.c.fork.send({status: 'service-c:get', data: {}});
+          services.d.fork.send({status: 'service-d:get', data: {}});
         }, 4000);
       }
     }
@@ -174,7 +259,7 @@ describe('RouteREST Publication Test', () => {
 
       done();
     }
-
-  }).timeout(20000);
+  }).timeout(15000);
 
 });
+  

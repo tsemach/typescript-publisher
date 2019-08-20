@@ -20,6 +20,11 @@ if ( ! PORT ) {
   process.exit(1);
 }
 
+let withOutEndPoint = false;
+if (process.argv.length > 2) {
+  withOutEndPoint = process.argv[2] === 'withOutEndPoint';
+}
+
 function run() {
   const config: PublisherRESTEndPoint = {
     name: 'service-b',
@@ -27,9 +32,11 @@ function run() {
     port: +PORT,
     route: '/v1/publish',
   }
-
-  PublisherREST.instance.addEndPoint({name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
-  PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});
+  
+  if ( ! withOutEndPoint ) {
+    PublisherREST.instance.addEndPoint({name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
+    PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});
+  }
   
   const server = PublisherRESTApplication.instance.listen('localhost', +PORT);
   server.on('listening', () => {

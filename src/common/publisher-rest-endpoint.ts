@@ -1,4 +1,5 @@
-import { TxRouteServiceConfig } from "rx-txjs";
+
+import { TxRoutpointIndicator } from "rx-txjs";
 
 /** 
  * TxPublisherRESTConfig configuration:
@@ -16,10 +17,7 @@ export interface PublisherRESTEndPoint {
 }
 
 export interface PublisherRESTTask { 
-  routepoint: {
-    name: string,
-    config: TxRouteServiceConfig
-  };
+  routepoints: TxRoutpointIndicator[];
   endpoint: PublisherRESTEndPoint;
   isPublish: boolean;
 }

@@ -4,9 +4,10 @@ const logger = createLogger('Route-Publication-REST-Service');
 
 import * as express from 'express';
 
-import { TxRouteServiceConfig, TxRoutePointRegistry, TxRoutePoint } from 'rx-txjs';
-import { Callable } from '../utils/';
+import { TxRouteServiceConfig, TxRoutePointRegistry, TxRoutePoint, TxRoutpointIndicator } from 'rx-txjs';
+import { Callable, utils } from '../utils/';
 import Summary from './redux/summary';
+import { PublisherREST } from './publisher-rest';
 import { PublisherRESTEndPoint } from '../common/publisher-rest-endpoint';
 
 export class PublisherRESTService extends Callable {
@@ -21,13 +22,13 @@ export class PublisherRESTService extends Callable {
      */
     router.get('/', (req: express.Request, res: express.Response, next: express.NextFunction) => {
       const { host, port, route } = req.query;
-      logger.info(`[${_config.name}] [PublisherRESTService::GET:/] got get routepoints request - req.query= ${JSON.stringify(req.query, undefined, 2)}`);
+      logger.info(`[${_config.name}] [PublisherRESTService::GET:/] got get routepoints request`);
       
       const routepoints = [];
       for(let [key, val] of _routepoints.entries()) {
         routepoints.push({name: key, config: val});
       }
-      logger.info(`[${_config.name}] [PublisherRESTService::GET:/] going to reply routepoints.length=${routepoints.length}`);
+      logger.info(`[${_config.name}] [PublisherRESTService::GET:/] going to reply with routepoints.length=${routepoints.length}`);
       
       res.json({success: true, data: routepoints});
     });
@@ -37,13 +38,24 @@ export class PublisherRESTService extends Callable {
      * the body include {name, config} of the routepoint. 
      */
     router.post('/', (req: express.Request, res: express.Response, next: express.NextFunction) => {      
-      logger.info(`[${_config.name}] [PublisherRESTService::POST:/] got post request - req.body = ${JSON.stringify(req.body, undefined, 2)}`);
-      const { name, config } = req.body;
+      logger.info(`[${_config.name}] [PublisherRESTService::POST:/] got post request from - req.body = ${JSON.stringify(req.body, undefined, 2)}`);
+      const routepoints: TxRoutpointIndicator[] = req.body
+      
+      if ( ! Array.isArray(routepoints) ) {
+        res.json({success: false});
 
-      config.mode = 'client';
-      TxRoutePointRegistry.instance.create(name, config);
+        return;
+      }
 
-      res.json({success: true});
+      routepoints.forEach(routepoint => {
+        const { name, config } = routepoint;
+
+        config.mode = 'client';
+        TxRoutePointRegistry.instance.create(name, config);
+      })
+      logger.info(`[${_config.name}] [PublisherRESTService::POST:/] added ${routepoints.length} routepoints`);
+
+      res.json({success: true, count: routepoints.length});
     });
     //------------------------------------------------------------------------------------------------------------
     /**
@@ -51,7 +63,7 @@ export class PublisherRESTService extends Callable {
      * If so return it's config
      */
     router.get('/discover', async (req: express.Request, res: express.Response, next: express.NextFunction) => {      
-      logger.info(`[${_config.name}] [PublisherRESTService::GET:/discovery] going to discover if routepoint of '${req.query.name} exist on my registry`);      
+      logger.info(`[${_config.name}] [PublisherRESTService::GET:/discovery] going to discover if routepoint of '${req.query.name} exist on my registry`);
       
       if (TxRoutePointRegistry.instance.has(req.query.name)) {
         logger.info(`[${_config.name}] [PublisherRESTService::GET:/discovery] found routename of name: '${req.query.name}`);
@@ -64,6 +76,18 @@ export class PublisherRESTService extends Callable {
       res.json({success: false});
     });
     //------------------------------------------------------------------------------------------------------------
+    /**
+     * this route adding new endpoint dynamically
+     * the body include typeof PublisherRESTEndPoint. 
+     */
+    router.post('/endpoint', async (req: express.Request, res: express.Response, next: express.NextFunction) => {      
+      logger.info(`[${_config.name}] [PublisherRESTService::POST:/endpoint] got post request - req.body = ${JSON.stringify(req.body, undefined, 2)}`);
+      const endpoint: PublisherRESTEndPoint = req.body;
+          
+      const reply = await PublisherREST.instance.addEndPoint({...endpoint}, true);
+
+      res.json({success: reply.success});
+    });//------------------------------------------------------------------------------------------------------------
     /**
      * this route is to add to me other service routepoint. 
      * the body include {name, config} of the routepoint. 

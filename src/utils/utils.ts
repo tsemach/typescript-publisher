@@ -3,6 +3,8 @@ import createLogger from 'logging';
 const logger = createLogger('Utils');
 
 import * as util from 'util';
+import * as url from 'url'
+import * as express from 'express';
 import axios, { Method } from 'axios';
 
 import { NodeCommonCallback } from '../common/callbacks';
@@ -48,8 +50,17 @@ async function callAxios(url: string, config: CallAxiosConfig, callback: NodeCom
   return {success: false, data: {}};
 }
 
+function fullUrl(req: express.Request) {
+  return url.format({
+    protocol: req.protocol,
+    host: req.get('host'),
+    pathname: req.originalUrl
+  });
+}
+
 export {
   sleep,
   clone,
-  callAxios
+  callAxios,
+  fullUrl
 }
