@@ -3,7 +3,7 @@ const logger = createLogger('Publication-REST-Service-E');
 
 import * as http from 'http';
 import { PublisherREST,  } from '../../../src/route/publisher-rest';
-import { PublisherRESTEndPoint } from '../../../src/common/publisher-rest-endpoint';
+import { PublisherRESTEndPointConfig } from '../../../src/common/publisher-rest-endpoint';
 import PublisherRESTApplication from '../publisher-rest-application';
 import PublisherRESTData from '../publisher-rest-data';
 
@@ -21,7 +21,7 @@ if ( ! PORT ) {
 
 let server: http.Server;
 function run() {
-  const config: PublisherRESTEndPoint = {
+  const config: PublisherRESTEndPointConfig = {
     name: 'service-e',
     host: 'localhost', 
     port: +PORT,

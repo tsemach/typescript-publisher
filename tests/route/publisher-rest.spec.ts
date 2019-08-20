@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import { assert } from 'chai';
 
 import { PublisherREST } from './../../src/route/publisher-rest';
-import { PublisherRESTEndPoint } from '../../src/common/publisher-rest-endpoint';
+import { PublisherRESTEndPointConfig } from '../../src/common/publisher-rest-endpoint';
 
 import PublisherRESTData from './publisher-rest-data';
 
@@ -24,9 +24,9 @@ describe('RouteREST Publication Test', () => {
     PublisherREST.instance.addEndPoint({name: 'service-a', host: 'someplace.com', port: 9999, route: '/v1/anywhere'});
     PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});
 
-    const endpoint = PublisherREST.instance.getEndPoint('service-a') as PublisherRESTEndPoint;
+    const endpoint = PublisherREST.instance.getEndPoint('service-a') as PublisherRESTEndPointConfig;
   
-    assert.deepEqual<PublisherRESTEndPoint>(endpoint, {name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
+    assert.deepEqual<PublisherRESTEndPointConfig>(endpoint, {name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
   });
 
   it('publication-rest.space.ts: test add endpoint with notifyAll', (done) => {

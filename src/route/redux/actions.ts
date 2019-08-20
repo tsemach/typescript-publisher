@@ -1,6 +1,6 @@
 
 import Consts, { SummaryConstType } from './consts';
-import { PublisherRESTEndPoint } from '../../common/publisher-rest-endpoint';
+import { PublisherRESTEndPointConfig } from '../../common/publisher-rest-endpoint';
 
 export interface ActionType {
   type: SummaryConstType,
@@ -15,7 +15,7 @@ export function startAction(name: string) {
   return {type: Consts.START, name};
 };
 
-export function addEndPointAction(endpoint: PublisherRESTEndPoint) {
+export function addEndPointAction(endpoint: PublisherRESTEndPointConfig) {
   return {type: Consts.ADD_ENDPOINT, endpoint};
 };
 

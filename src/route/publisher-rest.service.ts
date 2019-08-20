@@ -8,11 +8,11 @@ import { TxRouteServiceConfig, TxRoutePointRegistry, TxRoutePoint, TxRoutpointIn
 import { Callable, utils } from '../utils/';
 import Summary from './redux/summary';
 import { PublisherREST } from './publisher-rest';
-import { PublisherRESTEndPoint } from '../common/publisher-rest-endpoint';
+import { PublisherRESTEndPointConfig } from '../common/publisher-rest-endpoint';
 
 export class PublisherRESTService extends Callable {
   
-  __call__(_routepoints: Map<string, TxRouteServiceConfig>, _config: PublisherRESTEndPoint) {    
+  __call__(_routepoints: Map<string, TxRouteServiceConfig>, _config: PublisherRESTEndPointConfig) {    
     let router = express.Router();
 
     //------------------------------------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ export class PublisherRESTService extends Callable {
      */
     router.post('/endpoint', async (req: express.Request, res: express.Response, next: express.NextFunction) => {      
       logger.info(`[${_config.name}] [PublisherRESTService::POST:/endpoint] got post request - req.body = ${JSON.stringify(req.body, undefined, 2)}`);
-      const endpoint: PublisherRESTEndPoint = req.body;
+      const endpoint: PublisherRESTEndPointConfig = req.body;
           
       const reply = await PublisherREST.instance.addEndPoint({...endpoint}, true);
 

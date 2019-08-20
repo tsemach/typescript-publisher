@@ -9,7 +9,7 @@ import { TxRoutpointIndicator } from "rx-txjs";
  *  receiving path - the route where publication messages are coming in.
  *  publish path - the route on the where to send publish messages.
  */
-export interface PublisherRESTEndPoint {
+export interface PublisherRESTEndPointConfig {
   name: string;
   host: string;
   port: number;
@@ -18,6 +18,6 @@ export interface PublisherRESTEndPoint {
 
 export interface PublisherRESTTask { 
   routepoints: TxRoutpointIndicator[];
-  endpoint: PublisherRESTEndPoint;
+  endpoint: PublisherRESTEndPointConfig;
   isPublish: boolean;
 }

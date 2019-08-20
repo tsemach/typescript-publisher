@@ -1,4 +1,4 @@
-import { PublisherRESTEndPoint } from "../../common/publisher-rest-endpoint";
+import { PublisherRESTEndPointConfig } from "../../common/publisher-rest-endpoint";
 
 export default interface State {
   name: string;
@@ -10,7 +10,7 @@ export default interface State {
   components: string[];
   publishs: string[];
   discovers: string[];
-  endpoints: PublisherRESTEndPoint[]
+  endpoints: PublisherRESTEndPointConfig[]
 
 } 
 

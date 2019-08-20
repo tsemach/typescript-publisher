@@ -8,7 +8,7 @@ import * as util from 'util';
 import * as _ from 'lodash';
 
 import { TxRouteServiceConfig, TxPublisher, TxRoutePointRegistry } from 'rx-txjs';
-import { PublisherRESTEndPoint, PublisherRESTTask } from '../common/publisher-rest-endpoint';
+import { PublisherRESTEndPointConfig, PublisherRESTTask } from '../common/publisher-rest-endpoint';
 import { utils } from '../utils';
 import Summary from './redux/summary';
 import { CallAxiosConfig } from '../common/call-exios-config';
@@ -20,8 +20,8 @@ export class PublisherREST implements TxPublisher {
   public static _instance: PublisherREST = null;
 
   private routepoints = new Map<string, TxRouteServiceConfig>();
-  private endpoints = new Array<PublisherRESTEndPoint>();  
-  private config: PublisherRESTEndPoint;
+  private endpoints = new Array<PublisherRESTEndPointConfig>();  
+  private config: PublisherRESTEndPointConfig;
 
   constructor() {
   }
@@ -30,7 +30,7 @@ export class PublisherREST implements TxPublisher {
     return this._instance || (this._instance = new this());
   }
 
-  async setApplication(app: express.Application, config: PublisherRESTEndPoint) {
+  async setApplication(app: express.Application, config: PublisherRESTEndPointConfig) {
     this.config = config;    
 
     TxRoutePointRegistry.instance.setApplication(app)
@@ -168,7 +168,7 @@ export class PublisherREST implements TxPublisher {
     return {name, config: null};
   }
 
-  private async doDiscover(name: string | Symbol, endpoint: PublisherRESTEndPoint, callback: NodeCommonCallback) {    
+  private async doDiscover(name: string | Symbol, endpoint: PublisherRESTEndPointConfig, callback: NodeCommonCallback) {    
     logger.info(` [${endpoint.name}] ${this.prefix('doDiscover')} ${endpoint.name} need to discover routepoint '${name}'`);
     const { host, port, route } = endpoint;    
         
@@ -191,7 +191,7 @@ export class PublisherREST implements TxPublisher {
     callback({name, config: null} as TxRoutpointIndicator, null);
   }    
 
-  async addEndPoint(endpoint: PublisherRESTEndPoint, isNotifyAll = false) {
+  async addEndPoint(endpoint: PublisherRESTEndPointConfig, isNotifyAll = false) {
     if (_.find(this.endpoints, endpoint)) {
       logger.warn(`${this.prefix('addEndPoint')} is already exist in this.endpoints`);
       

@@ -2,7 +2,7 @@ import createLogger from 'logging';
 const logger = createLogger('Publication-REST-Service-B');
 
 import { PublisherREST,  } from '../../../src/route/publisher-rest';
-import { PublisherRESTEndPoint } from '../../../src/common/publisher-rest-endpoint';
+import { PublisherRESTEndPointConfig } from '../../../src/common/publisher-rest-endpoint';
 import PublisherRESTApplication from '../publisher-rest-application';
 import PublisherRESTData from '../publisher-rest-data';
 
@@ -26,7 +26,7 @@ if (process.argv.length > 2) {
 }
 
 function run() {
-  const config: PublisherRESTEndPoint = {
+  const config: PublisherRESTEndPointConfig = {
     name: 'service-b',
     host: 'localhost', 
     port: +PORT,

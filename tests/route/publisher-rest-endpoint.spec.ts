@@ -11,7 +11,7 @@ import * as http from 'http';
 import axios from 'axios';
 
 import { PublisherREST } from './../../src/route/publisher-rest';
-import { PublisherRESTEndPoint } from '../../src/common/publisher-rest-endpoint';
+import { PublisherRESTEndPointConfig } from '../../src/common/publisher-rest-endpoint';
 import PublisherRESTApplication from './publisher-rest-application';
 import PublisherRESTData from './publisher-rest-data';
 import { TxMountPoint, TxRoutePointRegistry } from 'rx-txjs';
@@ -72,7 +72,7 @@ describe('RouteREST Publication Test', () => {
     logger.info('publication-rest.space.ts: test add endpoint API');
               
     let server: http.Server;
-    const config: PublisherRESTEndPoint = {
+    const config: PublisherRESTEndPointConfig = {
       name: 'publication-rest-endpoint-test',
       host: 'localhost', 
       port: +PORT,
@@ -108,7 +108,7 @@ describe('RouteREST Publication Test', () => {
     logger.info('publication-rest-endpoint.space.ts: test add endpoint with rest call');
               
     let server: http.Server;
-    const config: PublisherRESTEndPoint = {
+    const config: PublisherRESTEndPointConfig = {
       name: 'publication-rest-endpoint-test',
       host: 'localhost', 
       port: +PORT,
