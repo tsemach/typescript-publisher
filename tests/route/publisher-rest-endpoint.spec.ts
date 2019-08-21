@@ -93,7 +93,7 @@ describe('RouteREST Publication Test', () => {
           continue;
         }
 
-        await PublisherREST.instance.addEndPoint({name: 'service-e', host: 'localhost', port: 3005, route: '/v1/publish'}, true);
+        PublisherREST.instance.addEndPoint({name: 'service-e', host: 'localhost', port: 3005, route: '/v1/publish'});
         await sleep(2000);
         
         console.log(PublisherREST.instance.getState());

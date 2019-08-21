@@ -31,7 +31,7 @@ async function callAxios(url: string, config: CallAxiosConfig, callback: NodeCom
   }
   let error = '';
   let loops = 0;
-  while (loops < config.loops) {
+  while (loops < (config.loops || 1)) {
     loops++;
     try {
       const reply = await axios(options);
@@ -41,13 +41,13 @@ async function callAxios(url: string, config: CallAxiosConfig, callback: NodeCom
     }
     catch (e) {
       error = e;
-      logger.info(`[util:callAxios] ERROR: from ${url} e:\n${e.stack}`);
+      logger.info(`[util:callAxios] ERROR: from ${url} e: ${e.stack}`);
       
-      await sleep(config.interval);
+      await sleep(config.interval || 0);
     }    
   }
   if (callback) callback(error, {success: false, data: null});
-  return {success: false, data: {}};
+  return {success: false, data: null};
 }
 
 function fullUrl(req: express.Request) {

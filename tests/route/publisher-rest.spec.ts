@@ -17,17 +17,17 @@ describe('RouteREST Publication Test', () => {
 
   /**
    */
-  it('publication-rest.space.ts: test add endpoint API', () => {
-    logger.info('publication-rest.space.ts: test add endpoint API');
+  // it('publication-rest.space.ts: test add endpoint API', () => {
+  //   logger.info('publication-rest.space.ts: test add endpoint API');
 
-    PublisherREST.instance.addEndPoint({name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
-    PublisherREST.instance.addEndPoint({name: 'service-a', host: 'someplace.com', port: 9999, route: '/v1/anywhere'});
-    PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});
+  //   PublisherREST.instance.addEndPoint({name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
+  //   PublisherREST.instance.addEndPoint({name: 'service-b', host: 'localhost', port: 3002, route: '/v1/anywhere'});
+  //   PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});
 
-    const endpoint = PublisherREST.instance.getEndPoint('service-a') as PublisherRESTEndPointConfig;
+  //   const endpoint = PublisherREST.instance.getEndPoint('service-a');
   
-    assert.deepEqual<PublisherRESTEndPointConfig>(endpoint, {name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
-  });
+  //   assert.deepEqual<PublisherRESTEndPointConfig>(endpoint, {name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
+  // });
 
   it('publication-rest.space.ts: test add endpoint with notifyAll', (done) => {
     logger.info('publication-rest.space.ts: test add endpoint with notifyAll');
@@ -52,7 +52,7 @@ describe('RouteREST Publication Test', () => {
         logger.info('[publication-rest.spec.ts:run] service.b.ready = ', services.d.ready);
         
         setTimeout(() => {
-          PublisherREST.instance.addEndPoint({name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'}, true);
+          PublisherREST.instance.addEndPoint({name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
           setTimeout(() => {
             verify();
           })

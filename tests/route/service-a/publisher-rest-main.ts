@@ -31,6 +31,12 @@ function run() {
     route: '/v1/publish',
   }
 
+  PublisherREST.instance.setApplication(PublisherRESTApplication.instance.app, config);
+
+  new R1Component();
+  new R2Component();
+  new R3Component();        
+
   if ( ! withOutEndPoint ) {
     PublisherREST.instance.addEndPoint({name: 'service-b', host: 'localhost', port: 3002, route: '/v1/publish'});
     PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});  
@@ -38,14 +44,6 @@ function run() {
 
   const server = PublisherRESTApplication.instance.listen('localhost', +PORT);
   server.on('listening', async () => {
-    await PublisherREST.instance.setApplication(PublisherRESTApplication.instance.app, config);
-
-    new R1Component();
-    new R2Component();
-    new R3Component();    
-
-    PublisherREST.instance.notifyAll();
-
     if (process.send) {
       process.send({status: 'service-a:up', data: {}});
     }

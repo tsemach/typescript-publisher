@@ -26,6 +26,7 @@ export class PublisherRESTService extends Callable {
       
       const routepoints = [];
       for(let [key, val] of _routepoints.entries()) {
+        console.log("SSSSSSSSSSSSSSSSSSS: VAL = ", JSON.stringify(val, undefined, 2));
         routepoints.push({name: key, config: val});
       }
       logger.info(`[${_config.name}] [PublisherRESTService::GET:/] going to reply with routepoints.length=${routepoints.length}`);
@@ -40,7 +41,8 @@ export class PublisherRESTService extends Callable {
     router.post('/', (req: express.Request, res: express.Response, next: express.NextFunction) => {      
       logger.info(`[${_config.name}] [PublisherRESTService::POST:/] got post request from - req.body = ${JSON.stringify(req.body, undefined, 2)}`);
       const routepoints: TxRoutpointIndicator[] = req.body
-      
+      const names: string[] = [];
+
       if ( ! Array.isArray(routepoints) ) {
         res.json({success: false});
 
@@ -52,10 +54,11 @@ export class PublisherRESTService extends Callable {
 
         config.mode = 'client';
         TxRoutePointRegistry.instance.create(name, config);
-      })
-      logger.info(`[${_config.name}] [PublisherRESTService::POST:/] added ${routepoints.length} routepoints`);
+        names.push(<string>name);
+      });
+      logger.info(`[${_config.name}] [PublisherRESTService::POST:/] added ${names.length} routepoints`);
 
-      res.json({success: true, count: routepoints.length});
+      res.json({success: true, names, count: names.length});
     });
     //------------------------------------------------------------------------------------------------------------
     /**
@@ -84,7 +87,7 @@ export class PublisherRESTService extends Callable {
       logger.info(`[${_config.name}] [PublisherRESTService::POST:/endpoint] got post request - req.body = ${JSON.stringify(req.body, undefined, 2)}`);
       const endpoint: PublisherRESTEndPointConfig = req.body;
           
-      const reply = await PublisherREST.instance.addEndPoint({...endpoint}, true);
+      const reply = PublisherREST.instance.addEndPoint({...endpoint});
 
       res.json({success: reply.success});
     });//------------------------------------------------------------------------------------------------------------

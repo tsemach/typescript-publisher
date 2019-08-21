@@ -1,3 +1,6 @@
+import createLogger from 'logging';
+const logger = createLogger('Summary');
+
 import * as _ from 'lodash';
 
 import Consts from './consts';
@@ -6,7 +9,6 @@ import { ActionType } from './actions';
 import { utils } from '../../utils';
 
 function startReducer(state: State, _action: ActionType) {
-
   const summary = {
     name: '',    
     summary: {
@@ -25,7 +27,11 @@ function startReducer(state: State, _action: ActionType) {
 }
 
 function addEndPointReducer(_state: State, _action: ActionType) {
-  const state = {..._state};
+  const state = {..._state};  
+  if ( ! state.endpoints ) {
+    logger.warn('PublisherREST is not initiate, call to setApplication first');
+    return state;
+  }
   state.endpoints.push(utils.clone(_action.endpoint));
 
   return state;

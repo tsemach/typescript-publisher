@@ -13,7 +13,7 @@ export interface PublisherRESTEndPointConfig {
   name: string;
   host: string;
   port: number;
-  route: string;  
+  route: string;
 }
 
 export interface PublisherRESTTask { 
