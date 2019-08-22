@@ -41,18 +41,18 @@ async function run() {
 
   if ( ! withOutEndPoint ) {
     PublisherREST.instance.addEndPoint({name: 'service-b', host: 'localhost', port: 3002, route: '/v1/publish'});
-    PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});  
+    // PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});  
   }
 
   const server = PublisherRESTApplication.instance.listen('localhost', +PORT);
   server.on('listening', async () => {
 
-    TxRoutePointRegistry.instance.del('SERVICE-B::R1');    
-    const mp = await TxRoutePointRegistry.instance.get('SERVICE-B::R1');
-    logger.info("'[service-a] found mountpoint:", mp.name)
+    // TxRoutePointRegistry.instance.del('SERVICE-B::R1');    
+    // const mp = await TxRoutePointRegistry.instance.get('SERVICE-B::R1');
+    // logger.info("'[service-a] found mountpoint:", mp.name)
     
-    const R1 = await TxRoutePointRegistry.instance.get('SERVICE-B::R1');    
-    logger.info("'[service-a] R1.name:", R1.name)
+    // const R1 = await TxRoutePointRegistry.instance.get('SERVICE-B::R1');    
+    // logger.info("'[service-a] R1.name:", R1.name)
 
     if (process.send) {
       process.send({status: 'service-a:up', data: {}});

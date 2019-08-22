@@ -93,33 +93,34 @@ export class PublisherRESTEndPointComponent {
     logger.info(`${this.prefix('mainloop')} start mainloop iteration, this.notified: ${this.notified.name}, this.pending.size: ${this.pending.size}`);
 
     if (this.notified.isNeeded()) {
-      logger.info(`${this.prefix('mainloop')} promisify notify`);
+      logger.info(`${this.prefix('mainloop')} promisify notify from ${this.endpoint.name}`);
 
       util.promisify(this.notify.bind(this))()
       .then((reply: any) => {
-        logger.info(`${this.prefix('mainloop')} promisify notify got reply: ${JSON.stringify(reply)}`);
+        logger.info(`${this.prefix('mainloop')} promisify notify got reply from ${this.endpoint.name}: ${JSON.stringify(reply)}`);
+        this.notified.stat = NotifyStatEnum.DONE;
 
         this.runMainLoop();
       })
       .catch((reply: any) => { 
-        logger.error(`${this.prefix('mainloop')} ERROR - promisify notify got reply: ${JSON.stringify(reply)}`);
+        this.notified.stat = NotifyStatEnum.START;
+        logger.error(`${this.prefix('mainloop')} ERROR - promisify notify got reply from ${this.endpoint.name}: ${JSON.stringify(reply)}`);
 
         this.runMainLoop();
       });
     }
 
     if (this.pending.size > 0) {
-      logger.info(`${this.prefix('mainloop')} promisify pending routepoints`);
+      logger.info(`${this.prefix('mainloop')} promisify pending routepoints of ${this.endpoint.name}`);
 
       util.promisify(this.publishRoutePoints.bind(this))()
-
       .then((reply: any) => {
-        logger.info(`${this.prefix('mainloop')} promisify pending routepoints got reply: ${JSON.stringify(reply)}`);
+        logger.info(`${this.prefix('mainloop')} promisify pending routepoints got result from ${this.endpoint.name}: ${JSON.stringify(reply)}`);
 
         this.runMainLoop();      
       })
       .catch((reply: any) => { 
-        logger.error(`${this.prefix('mainloop')} ERROR - pending routepoints got reply: ${JSON.stringify(reply)}`);
+        logger.error(`${this.prefix('mainloop')} ERROR - pending routepoints got result from ${this.endpoint.name}: ${JSON.stringify(reply)}`);
 
         this.runMainLoop();
       });
@@ -190,9 +191,17 @@ export class PublisherRESTEndPointComponent {
     try {
       const reply = await util.promisify(this.doPublish.bind(this))(task);
       logger.info(`${this.prefix('publishRoutePoints')} complete publishing all pending routepoints to ${this.endpoint.name}`);
+      
+      if (reply.success) callback(null, {endpoint: task.endpoint, reply});
+      else callback(reply, null);
+
+      return reply;
     }
     catch(e) {
-      logger.error(`${this.prefix('publishRoutePoints')} ERROR on promise.all, e: ${e.message}`);
+      logger.error(`${this.prefix('publishRoutePoints')} ERROR on publish to ${this.endpoint.name} e: ${e.message}`);
+      callback({success: false, endpoint: task.endpoint}, null)
+
+      return {success: false, endpoint: task.endpoint};
     }
   }
 
