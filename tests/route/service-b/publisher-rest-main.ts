@@ -37,7 +37,7 @@ function run() {
 
   if ( ! withOutEndPoint ) {
     PublisherREST.instance.addEndPoint({name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
-    // PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});
+    PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});
   }
   
   const server = PublisherRESTApplication.instance.listen('localhost', +PORT);

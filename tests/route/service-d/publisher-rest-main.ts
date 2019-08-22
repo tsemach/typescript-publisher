@@ -28,20 +28,17 @@ function run() {
     route: '/v1/publish',
   }
 
+  PublisherREST.instance.setApplication(PublisherRESTApplication.instance.app, config);
+
   PublisherREST.instance.addEndPoint({name: 'service-a', host: 'localhost', port: 3001, route: '/v1/publish'});
   PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});
   
   const server = PublisherRESTApplication.instance.listen('localhost', +PORT);
   server.on('listening', () => {
-    PublisherREST.instance.setApplication(PublisherRESTApplication.instance.app, config);
 
     // new R1Component();
     // new R2Component();
     // new R3Component();
-
-    if (process.send) {
-      process.send({status: 'service-d:up', data: {}});
-    }
 
     setTimeout(async () => {
       logger.info('[publisher-rest-main-d]: discovery going to check discovery');
@@ -51,8 +48,12 @@ function run() {
 
       const reply = await rp.tasks().next(new TxRouteServiceTask<any>({source: 'publisher-rest-main-d'}, {from: 'clientRoutePoint'}));
 
-      logger.info(`[publisher-rest-main-d] routepoint ${rp.name}.tasks().next(..) is: ${JSON.stringify(reply.data)}`);
-    }, 2000);
+      logger.info(`[publisher-rest-main-d] routepoint ${rp.name}.tasks().next(..) is: ${JSON.stringify(reply.data)}`);      
+
+      if (process.send) {
+        process.send({status: 'service-d:up', data: {}});
+      }
+    }, 0);
     
   });
 }
