@@ -83,12 +83,6 @@ export class PublisherRESTEndPointComponent {
     setImmediate(this.mainloop.bind(this));    
   }
 
-  // publish(name: string, config: TxRouteServiceConfig) {
-  //   logger.info(`${this.prefix('publish')} add routepoint: ${name} to publish list`);
-
-  //   this.pending.set(name, config);
-  // }
-
   private async mainloop() {    
     logger.info(`${this.prefix('mainloop')} start mainloop iteration, this.notified: ${this.notified.name}, this.pending.size: ${this.pending.size}`);
 
