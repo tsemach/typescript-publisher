@@ -1,6 +1,8 @@
 import createLogger from 'logging';
 const logger = createLogger('Publication-REST-Service-A');
 
+import { TxRoutePointRegistry } from 'rx-txjs';
+
 import { PublisherREST,  } from '../../../src/route/publisher-rest';
 import { PublisherRESTEndPointConfig } from '../../../src/common/publisher-rest-endpoint';
 import PublisherRESTApplication from '../publisher-rest-application';
@@ -39,11 +41,19 @@ function run() {
 
   if ( ! withOutEndPoint ) {
     PublisherREST.instance.addEndPoint({name: 'service-b', host: 'localhost', port: 3002, route: '/v1/publish'});
-    PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});  
+    // PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});  
   }
 
   const server = PublisherRESTApplication.instance.listen('localhost', +PORT);
   server.on('listening', async () => {
+    
+    TxRoutePointRegistry.instance.del('SERVICE-B::R1');
+    console.log("MAIN - A MMMMMMMMMMMMMMMMMMMMMMMM has ", TxRoutePointRegistry.instance.has('SERVICE-B::R1'))
+    
+    console.log("MAIN - A MMMMMMMMMMMMMMMMMMMMMMMM mp.name:");
+    const mp = await TxRoutePointRegistry.instance.get('SERVICE-B::R1');
+    console.log("MAIN - A MMMMMMMMMMMMMMMMMMMMMMMM mp.name:", mp.name);
+
     if (process.send) {
       process.send({status: 'service-a:up', data: {}});
     }

@@ -18,6 +18,7 @@ import Summary from '../redux/summary';
 import { utils } from '../../utils';
 import { NodeCommonCallback } from '../../common/callbacks';
 import { PublisherRESTEndPointHead } from '../../common/publisher-rest-endpoint-head';
+import { PublisherREST } from '../publisher-rest';
 
 enum NotifyStatEnum {
   START,
@@ -55,12 +56,28 @@ export class PublisherRESTEndPointComponent {
     const mp = TxMountPointRegistry.instance.create(PublisherRESTEndPointComponent.getMountPointName(this.endpoint.name));
     
     mp.tasks().subscribe(
-      (task: TxTask<PublisherRESTEndPointHead>) => {
-        logger.info(`${this.prefix('subscribe')} got task, method: ${task.head.method}, name: ${task.data.name}`);
+      async (task: TxTask<PublisherRESTEndPointHead>) => {
+        logger.info(`${this.prefix('subscribe')} got task method: '${task.head.method}', name: '${task.data.name}'`);
         const data: TxRoutpointIndicator = task.getData();
 
-        this.pending.set(<string>data.name, data.config);
-        setImmediate(this.runMainLoop.bind(this));    
+        if (task.head.method === 'publish') {
+          this.pending.set(<string>data.name, data.config);   
+          setImmediate(this.runMainLoop.bind(this));
+        }
+
+        if (task.head.method === 'discover') {
+          const head = {method: 'discover', source: this.endpoint.name};
+          try {
+            console.log("DDDDDDDDDDDDDDDDDDDDDDDD: name", data)
+            const reply = await this.doDiscover(data.name, null);
+            console.log("DDDDDDDDDDDDDDDDDDDDDDDD IN SUCSCRIBE : reply = ", reply)
+
+            mp.reply().next(new TxTask<PublisherRESTEndPointHead>(head, reply));
+          }
+          catch (e) {
+            mp.reply().next(new TxTask<PublisherRESTEndPointHead>(head, {name, config: null}));
+          }
+        }
       });
 
     this.pending = _.cloneDeep(routepoints);
@@ -68,11 +85,11 @@ export class PublisherRESTEndPointComponent {
     setImmediate(this.mainloop.bind(this));    
   }
 
-  publish(name: string, config: TxRouteServiceConfig) {
-    logger.info(`${this.prefix('publish')} add routepoint: ${name} to publish list`);
+  // publish(name: string, config: TxRouteServiceConfig) {
+  //   logger.info(`${this.prefix('publish')} add routepoint: ${name} to publish list`);
 
-    this.pending.set(name, config);
-  }
+  //   this.pending.set(name, config);
+  // }
 
   private async mainloop() {    
     logger.info(`${this.prefix('mainloop')} start mainloop iteration, this.notified: ${this.notified.name}, this.pending.size: ${this.pending.size}`);
@@ -214,27 +231,30 @@ export class PublisherRESTEndPointComponent {
     callback({success: false, data: null}, null); 
   }
 
-  private async doDiscover(name: string | Symbol, endpoint: PublisherRESTEndPointConfig, callback: NodeCommonCallback) {    
-    logger.info(` [${endpoint.name}] ${this.prefix('doDiscover')} ${endpoint.name} need to discover routepoint '${name}'`);
-    const { host, port, route } = endpoint;    
+  private async doDiscover(name: string | Symbol, callback: NodeCommonCallback) {    
+    logger.info(` [${this.endpoint.name}] ${this.prefix('doDiscover')} asking ${this.endpoint.name} if has routepoint '${name}'`);
+    const { host, port, route } = this.endpoint;    
         
     const url = `http://${host}:${port}${route}/discover?name=${name}`;
     const options: CallAxiosConfig = {
       method: 'get',
       timeout: 2000,
-      loops: 3,
+      loops: 30,
       interval: 2000,
-      from: '/v1/publish',      
+      from: `${this.getName()}`,
     }      
 
-    const data = await utils.callAxios(url, options, null);         
+    const data = await utils.callAxios(url, options, null);
+console.log("EEEEEEEEEEEEEEEE got rpely from callAxios data", data)
     if (data && data.success === true) {
-      logger.info(`[${endpoint.name}] ${this.prefix('doDiscover')} find routepoint of name: ${name} on ${url} with config ${JSON.stringify(data.config)}`);
-      callback(null, {name, config: data.config} as TxRoutpointIndicator);
+      logger.info(`${this.prefix('doDiscover')} find routepoint of name: ${name} on ${url} with config ${JSON.stringify(data.config)}`);
+      if (callback) callback(null, {name, config: data.config} as TxRoutpointIndicator);
 
-      return;
+      return {name, config: data.config};
     }    
-    callback({name, config: null} as TxRoutpointIndicator, null);
+    if (callback) callback({name, config: null} as TxRoutpointIndicator, null);
+    console.log("EEEEEEEEEEEEEEEE DO SICOVER: NOT FOUBD", data)
+    return {name, config: null} as TxRoutpointIndicator, null;
   }    
 
   private routePointsToArray(routepoints: Map<string, TxRouteServiceConfig>) {
@@ -251,7 +271,7 @@ export class PublisherRESTEndPointComponent {
   }
   
   getName() {
-    return this.endpoint ? this.endpoint.name : '';
+    return PublisherREST.instance.getName();
   }
 
   prefix(from: string) {

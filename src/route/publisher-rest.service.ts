@@ -26,7 +26,6 @@ export class PublisherRESTService extends Callable {
       
       const routepoints = [];
       for(let [key, val] of _routepoints.entries()) {
-        console.log("SSSSSSSSSSSSSSSSSSS: VAL = ", JSON.stringify(val, undefined, 2));
         routepoints.push({name: key, config: val});
       }
       logger.info(`[${_config.name}] [PublisherRESTService::GET:/] going to reply with routepoints.length=${routepoints.length}`);
