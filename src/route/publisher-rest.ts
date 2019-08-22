@@ -79,7 +79,6 @@ export class PublisherREST implements TxPublisher {
         const indicator = await util.promisify(sendDiscover.bind(this))(endPointName);      
         if (indicator.config) {
           logger.info(`${this.prefix('discover')} found indicator: ${indicator.name} with config: ${indicator.config}`);
-          console.log("PPPPPPPPPPPPPPPPPP INDICATOR=", indicator)
           Summary.dispatch(Summary.consts.ADD_DISCOVER, {component: indicator.name, service: endPointName});
           return indicator;
         }

@@ -25,7 +25,7 @@ if (process.argv.length > 2) {
   withOutEndPoint = process.argv[2] === 'withOutEndPoint';
 }
 
-function run() {
+async function run() {
   const config: PublisherRESTEndPointConfig = {
     name: 'service-a',
     host: 'localhost', 
@@ -46,13 +46,13 @@ function run() {
 
   const server = PublisherRESTApplication.instance.listen('localhost', +PORT);
   server.on('listening', async () => {
-    
-    TxRoutePointRegistry.instance.del('SERVICE-B::R1');
-    console.log("MAIN - A MMMMMMMMMMMMMMMMMMMMMMMM has ", TxRoutePointRegistry.instance.has('SERVICE-B::R1'))
-    
-    console.log("MAIN - A MMMMMMMMMMMMMMMMMMMMMMMM mp.name:");
+
+    TxRoutePointRegistry.instance.del('SERVICE-B::R1');    
     const mp = await TxRoutePointRegistry.instance.get('SERVICE-B::R1');
-    console.log("MAIN - A MMMMMMMMMMMMMMMMMMMMMMMM mp.name:", mp.name);
+    logger.info("'[service-a] found mountpoint:", mp.name)
+    
+    const R1 = await TxRoutePointRegistry.instance.get('SERVICE-B::R1');    
+    logger.info("'[service-a] R1.name:", R1.name)
 
     if (process.send) {
       process.send({status: 'service-a:up', data: {}});

@@ -68,9 +68,7 @@ export class PublisherRESTEndPointComponent {
         if (task.head.method === 'discover') {
           const head = {method: 'discover', source: this.endpoint.name};
           try {
-            console.log("DDDDDDDDDDDDDDDDDDDDDDDD: name", data)
             const reply = await this.doDiscover(data.name, null);
-            console.log("DDDDDDDDDDDDDDDDDDDDDDDD IN SUCSCRIBE : reply = ", reply)
 
             mp.reply().next(new TxTask<PublisherRESTEndPointHead>(head, reply));
           }
@@ -245,7 +243,6 @@ export class PublisherRESTEndPointComponent {
     }      
 
     const data = await utils.callAxios(url, options, null);
-console.log("EEEEEEEEEEEEEEEE got rpely from callAxios data", data)
     if (data && data.success === true) {
       logger.info(`${this.prefix('doDiscover')} find routepoint of name: ${name} on ${url} with config ${JSON.stringify(data.config)}`);
       if (callback) callback(null, {name, config: data.config} as TxRoutpointIndicator);
@@ -253,7 +250,6 @@ console.log("EEEEEEEEEEEEEEEE got rpely from callAxios data", data)
       return {name, config: data.config};
     }    
     if (callback) callback({name, config: null} as TxRoutpointIndicator, null);
-    console.log("EEEEEEEEEEEEEEEE DO SICOVER: NOT FOUBD", data)
     return {name, config: null} as TxRoutpointIndicator, null;
   }    
 
