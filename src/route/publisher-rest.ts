@@ -32,7 +32,7 @@ export class PublisherREST implements TxPublisher {
     return this._instance || (this._instance = new this());
   }
 
-  async setApplication(app: express.Application, config: PublisherRESTEndPointConfig) {
+  setApplication(app: express.Application, config: PublisherRESTEndPointConfig) {
     this.config = config;    
 
     TxRoutePointRegistry.instance.setApplication(app)

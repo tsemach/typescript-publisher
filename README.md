@@ -8,7 +8,7 @@ This suite of publication tools enable you to publish those Components over serv
 >RoutePoint - is a an object use as a borker between the remote Components living in two different services.
 
 #### `Service side` - Let see an example of Rx-TxJS's routepoint. 
-````Typescript
+````javascript
 import { 
   TxMountPoint,
   TxRoutePointRegistry,
@@ -56,8 +56,14 @@ class R1Component {
 
 }
 ````
+
+1. `GITHUB::R1`: is the name of the component must be unique among ALL services.
+2. `Headers`: this goes to the HTTP header in the reqeust.
+3. `reponse`: this define how to send the response to the client.
+4. `source: 'R1Component', status: "ok"`: any data object return back to client.
+
 `client-side` - To use this routepoint internally or from another service use:
-````Typescript
+````javascript
   // first create the client side routepoint. This is done once on initialization
   const config: TxRouteServiceConfig = {
     mode = 'client',    // I am on the client side
@@ -85,7 +91,7 @@ class R1Component {
 
 >NOTE: So the task of the publication is create a routepoint on the client registry so you can use it on every point in the code without to define the above code on the client. The publication is do it for you. 
 The task of the publciation is to make this two calles available:
-````Typescript
+````javascript
   // the configration object as define on the server side
   const config: TxRouteServiceConfig = {
     ...
