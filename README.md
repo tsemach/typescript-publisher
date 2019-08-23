@@ -115,7 +115,7 @@ With this topology all services are directly communciating with all others (star
 #### To Initialize the publication you have to call to two methods:
 
 1. Define config object of your service like: 
-````Javascript
+````javascript
 const config: PublisherRESTEndPointConfig = {
   name: 'service-a',    // my service name, must be unique 
   host: 'localhost',    // host address
@@ -134,7 +134,7 @@ const config: PublisherRESTEndPointConfig = {
 An example of a service may looks like that:
 
 On startup each service initialize **`TxPublisherREST`** object as follow:
-````Javascript
+````javascript
 import * as express from 'express';
 import { TxPublisherREST } from 'rx-txjs-publisher/route';
 

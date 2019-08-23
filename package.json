@@ -1,6 +1,6 @@
 {
   "name": "typescript-publisher",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A set of tools to build publication server of rx-txjs components",
   "main": "dist/src/index.js",
   "scripts": {
