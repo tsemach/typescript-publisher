@@ -123,10 +123,10 @@ const config: PublisherRESTEndPointConfig = {
   route: '/v1/publish'  // the route name of the publication middleware
 }
 ````
-2. call to: ````TxPublisherREST.instance.setApplication(app, config);````  // where app is the express application   
+2. call to: ````javascript TxPublisherREST.instance.setApplication(app, config);````  // where app is the express application   
 > This initiate the publication routes using your express application (middleware).
 
-3. Call to: ````xPublisherREST.instance.addEndPoint(host, port, '/v1/publisher');````  // host, port, route of the other service
+3. Call to: ````javascript PublisherREST.instance.addEndPoint(host, port, '/v1/publisher');````  // host, port, route of the other service
 > This will add an endpoint. Endpoint is the remote service you want to work with.
 
 `TxPublisherREST` will send all you rotuepoints to others enpoints and receive from them there routepoints.
