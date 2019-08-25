@@ -1,10 +1,11 @@
 {
-  "name": "typescript-publisher",
-  "version": "0.0.6",
+  "name": "rx-txjs-publisher",
+  "version": "0.0.8",
   "description": "A set of tools to build publication server of rx-txjs components",
   "main": "dist/src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc -sourcemap --declaration",
+  	"test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",

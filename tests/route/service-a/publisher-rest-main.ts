@@ -1,7 +1,7 @@
 import createLogger from 'logging';
 const logger = createLogger('Publication-REST-Service-A');
 
-import { TxRoutePointRegistry } from 'rx-txjs';
+import { TxRoutePointRegistry, TxJob, TxTask } from 'rx-txjs';
 
 import { PublisherREST,  } from '../../../src/route/publisher-rest';
 import { PublisherRESTEndPointConfig } from '../../../src/common/publisher-rest-endpoint';
@@ -41,12 +41,24 @@ async function run() {
 
   if ( ! withOutEndPoint ) {
     PublisherREST.instance.addEndPoint({name: 'service-b', host: 'localhost', port: 3002, route: '/v1/publish'});
-    PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});  
+    // PublisherREST.instance.addEndPoint({name: 'service-c', host: 'localhost', port: 3003, route: '/v1/publish'});  
   }
 
   const server = PublisherRESTApplication.instance.listen('localhost', +PORT);
   server.on('listening', async () => {
 
+    setTimeout(async () => {
+      const job = new TxJob('job-1');
+
+      job.add(await TxRoutePointRegistry.instance.get('SERVICE-B::R1'));
+      job.add(await TxRoutePointRegistry.instance.get('SERVICE-B::R2'));
+      job.add(await TxRoutePointRegistry.instance.get('SERVICE-B::R3'));
+
+      job.execute(new TxTask<any>(
+        {source: 'service-a'},
+        {jobId: job.getUuid()}
+      ));
+    }, 2000);
     // TxRoutePointRegistry.instance.del('SERVICE-B::R1');    
     // const mp = await TxRoutePointRegistry.instance.get('SERVICE-B::R1');
     // logger.info("'[service-a] found mountpoint:", mp.name)

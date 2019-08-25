@@ -1,5 +1,5 @@
 import createLogger from 'logging';
-const logger = createLogger('R1Component');
+const logger = createLogger('Service-B-R3Component');
 
 import { TxMountPoint, TxRoutePointRegistry, TxRouteServiceTask } from 'rx-txjs';
 
@@ -9,7 +9,7 @@ export class R3Component {
       host: 'localhost',
       port: 3002,
       method: 'get',
-      service: 'sanity',
+      service: 'R3Component',
       route: 'save'
   };
 
@@ -19,7 +19,7 @@ export class R3Component {
 
     this.mountpoint.tasks().subscribe(
     (task: TxRouteServiceTask<any>) => {
-      console.log('[R1Component::subscribe] subscribe called, task:', JSON.stringify(task.get(), undefined, 2));
+      logger.info('[R1Component::subscribe] subscribe called, task:', JSON.stringify(task.get(), undefined, 2));
 
       task.reply().next(new TxRouteServiceTask<any>({
         headers: {
@@ -31,7 +31,9 @@ export class R3Component {
           type: 'json'
         }},
         {
-          source: 'service-b::R3Component', status: "ok"
+          source: 'service-b::R3Component', 
+          status: "ok",
+          originData: task.getData()
         }
       ));      
     });
