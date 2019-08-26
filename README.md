@@ -7,6 +7,8 @@ This suite of publication tools enable you to publish those Components over serv
 
 >RoutePoint - is a an object use as a borker between the remote Components living in two different services.
 
+>**See example project here [typescript-publisher-example](https://github.com/tsemach/typescript-publisher-example)**
+
 #### `Service side` - Let see an example of Rx-TxJS's routepoint. 
 ````javascript
 import { 
