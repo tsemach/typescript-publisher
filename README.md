@@ -1,5 +1,9 @@
 ## Rx-TxJS Components Publication Client / Server Tools
 
+## What's New
+`version 0.0.4`
+Fix [rx-txjs](https://www.npmjs.com/package/rx-txjs)) job stuck bug with rotuepoint.
+
 This package inlude a suite of tools helping to build publication server and client. [Rx-TxJS](https://www.npmjs.com/package/rx-txjs) implement the concept of decouping objects in process and between processes (services). The main idea of Rx-TxJS is calling an object by its unique name and send him a message (without any direct API activiation) in a similar fashion as RxJS does. The receive component is subscribe and act when those message arrive. You use a Components registry to find those objects living in process. 
 
 This suite of publication tools enable you to publish those Components over services / processes simlessly. Once Components has publish it able to call directly from one service to another in the excat same manager as they do in process. 
